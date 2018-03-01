@@ -7,15 +7,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     OV_PASSWORD=admin
 
 RUN apt-get update && \
-    apt-get install software-properties-common --no-install-recommends -yq && \
-    add-apt-repository ppa:mikesplain/openvas -y && \
+    apt-get install python-software-properties sqlite3 software-properties-common -y && \
     add-apt-repository ppa:mrazavi/openvas -y && \
-    apt-get clean && \
     apt-get update && \
-    apt-get install alien \
+    apt-get install openvas9 -y \
+                    alien \
                     bzip2 \
                     curl \
-                    dirb \
                     dnsutils \
                     libopenvas9-dev \
                     net-tools \
@@ -48,8 +46,7 @@ RUN apt-get update && \
     apt-get autoremove -yq && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget -q https://github.com/Arachni/arachni/releases/download/v1.5/arachni-1.5-0.5.11-linux-x86_64.tar.gz && \
-    tar -zxf arachni-1.5-0.5.11-linux-x86_64.tar.gz && \
+RUN wget -qO - https://github.com/Arachni/arachni/releases/download/v1.5/arachni-1.5-0.5.11-linux-x86_64.tar.gz | tar xzv && \
     mv arachni-1.5-0.5.11 /opt/arachni && \
     ln -s /opt/arachni/bin/* /usr/local/bin/ && \
     rm -rf arachni*
@@ -62,9 +59,9 @@ RUN mkdir -p /var/run/redis && \
     sed -i 's/DAEMON_ARGS=""/DAEMON_ARGS="-a 0.0.0.0"/' /etc/init.d/openvas-manager && \
     sed -i 's/DAEMON_ARGS=""/DAEMON_ARGS="--mlisten 127.0.0.1 -m 9390"/' /etc/init.d/openvas-gsa && \
     sed -i 's/PORT_NUMBER=4000/PORT_NUMBER=443/' /etc/default/openvas-gsa && \
-    greenbone-nvt-sync > /dev/null && \
-    greenbone-scapdata-sync > /dev/null && \
-    greenbone-certdata-sync > /dev/null && \
+    greenbone-nvt-sync && \
+    greenbone-scapdata-sync && \
+    greenbone-certdata-sync && \
     BUILD=true /start && \
     service openvas-scanner stop && \
     service openvas-manager stop && \
